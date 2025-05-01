@@ -1,9 +1,12 @@
 -- 1. BORRAR LAS TABLAS SI EXISTEN
-IF OBJECT_ID('dbo.TFG_LCM_ResultadoComparativaEnergiav2', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ResultadoComparativaEnergiav2;
-IF OBJECT_ID('dbo.TFG_LCM_ConsumoDiariov2', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ConsumoDiariov2;
-IF OBJECT_ID('dbo.TFG_LCM_ConsumoFacturadov2', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ConsumoFacturadov2;
+IF OBJECT_ID('dbo.TFG_LCM_ResultadoComparativaEnergiav3', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ResultadoComparativaEnergiav3;
+IF OBJECT_ID('dbo.TFG_LCM_ConsumoDiariov3', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ConsumoDiariov3;
+IF OBJECT_ID('dbo.TFG_LCM_ConsumoFacturadov3', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ConsumoFacturadov3;
+IF OBJECT_ID('dbo.TFG_LCM_ConsumoFacturadov3_RAW', 'U') IS NOT NULL DROP TABLE dbo.TFG_LCM_ConsumoFacturadov3_RAW;
+
 
 -- 2. CREAR TABLA TFG_LCM_ConsumoFacturado
+-- Paso 1: Crear tabla intermedia sin agrupar
 SELECT 
     cac.idCUPS,
     cac.EjercicioAlbaran,
@@ -12,19 +15,10 @@ SELECT
     cac.FechaDesdeFactura, 
     cac.FechaHastaFactura, 
     cac.codigoempresa,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P1' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P1,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P2' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P2,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P3' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P3,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P4' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P4,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P5' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P5,
-    SUM(CASE WHEN lac.CodigoPeriodo = 'P6' THEN lac.Unidades ELSE 0 END) AS EnergiaFacturada_P6,
-    CASE WHEN lac.CodigoPeriodo = 'P1' then lac.precio end precio_P1    ,	
-    CASE WHEN lac.CodigoPeriodo = 'P2' then lac.precio end precio_P2,
-    CASE wHEN lac.CodigoPeriodo = 'P3' then lac.precio end precio_P3,
-    CASE WHEN lac.CodigoPeriodo = 'P4' then lac.precio end precio_P4,
-    CASE WHEN lac.CodigoPeriodo = 'P5' then lac.precio end precio_P5,
-    CASE WHEN lac.CodigoPeriodo = 'P6' then lac.precio end precio_P6
-INTO TFG_LCM_ConsumoFacturadov2
+    lac.CodigoPeriodo,
+    lac.Unidades,
+    lac.precio
+INTO TFG_LCM_ConsumoFacturadov3_RAW
 FROM CabeceraAlbaranCliente cac
 JOIN lineasAlbaranCliente lac
     ON cac.EjercicioAlbaran = lac.EjercicioAlbaran
@@ -34,11 +28,37 @@ WHERE
     cac.siglanacion = 'ES'
     AND cac.EjercicioAlbaran = '2024'
     AND lac.CodigoSubfamilia = 'Energia'
---    and cac.idCUPS = 'ES0031405093566001EQ0F'
+--    AND cac.idCUPS = 'ES0031405093566001EQ0F'
+;
+
+-- Paso 2: Agregar datos y guardar el resultado final
+SELECT 
+    idCUPS,
+    EjercicioAlbaran,
+    NumeroAlbaran,
+    SerieAlbaran, 
+    FechaDesdeFactura, 
+    FechaHastaFactura, 
+    codigoempresa,
+    SUM(CASE WHEN CodigoPeriodo = 'P1' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P1,
+    SUM(CASE WHEN CodigoPeriodo = 'P2' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P2,
+    SUM(CASE WHEN CodigoPeriodo = 'P3' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P3,
+    SUM(CASE WHEN CodigoPeriodo = 'P4' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P4,
+    SUM(CASE WHEN CodigoPeriodo = 'P5' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P5,
+    SUM(CASE WHEN CodigoPeriodo = 'P6' THEN Unidades ELSE 0 END) AS EnergiaFacturada_P6,
+    SUM(CASE WHEN CodigoPeriodo = 'P1' THEN precio ELSE 0 END) AS precio_P1,
+    SUM(CASE WHEN CodigoPeriodo = 'P2' THEN precio ELSE 0 END) AS precio_P2,
+    SUM(CASE WHEN CodigoPeriodo = 'P3' THEN precio ELSE 0 END) AS precio_P3,
+    SUM(CASE WHEN CodigoPeriodo = 'P4' THEN precio ELSE 0 END) AS precio_P4,
+    SUM(CASE WHEN CodigoPeriodo = 'P5' THEN precio ELSE 0 END) AS precio_P5,
+    SUM(CASE WHEN CodigoPeriodo = 'P6' THEN precio ELSE 0 END) AS precio_P6
+INTO TFG_LCM_ConsumoFacturadov3
+FROM TFG_LCM_ConsumoFacturadov3_RAW
 GROUP BY 
-    cac.idCUPS, cac.EjercicioAlbaran, cac.NumeroAlbaran, cac.SerieAlbaran, 
-    cac.FechaDesdeFactura, cac.FechaHastaFactura, cac.codigoempresa,lac.CodigoPeriodo,lac.precio;
-    
+    idCUPS, EjercicioAlbaran, NumeroAlbaran, SerieAlbaran, 
+    FechaDesdeFactura, FechaHastaFactura, codigoempresa
+;
+
    
 -- 3. CREAR TABLA TFG_LCM_ConsumoDiario
 SELECT 
@@ -178,7 +198,7 @@ SELECT
             CASE WHEN ch.PerfilHora10 = 'P6' THEN ch.H10 ELSE 0 END +
             CASE WHEN ch.PerfilHora11 = 'P6' THEN ch.H11 ELSE 0 END +
             CASE WHEN ch.PerfilHora12 = 'P6' THEN ch.H12 ELSE 0 END) AS ConsumoP6
-INTO TFG_LCM_ConsumoDiariov2
+INTO TFG_LCM_ConsumoDiariov3
 FROM CurvaHoraria ch
 JOIN TFG_LCM_ConsumoFacturado cf
     ON ch.idCUPS = cf.idCUPS
@@ -275,9 +295,9 @@ SELECT
 	SIPSRevP1,SIPSRevP2,SIPSRevP3,SIPSRevP4,SIPSRevP5,SIPSRevP6,FacturarEstimadas_Motivo,
 	DICASImporte,DICASDocumento,DICASStatus,DICASFrecuencia,MarcaMedPerd,VAsTrafo,PorPerdidas,
 	ConsumoAnualM3,EscaladodeConsumo,NiveldePreion
-INTO TFG_LCM_ResultadoComparativaEnergiav2
-FROM TFG_LCM_ConsumoFacturadov2 cf
-JOIN TFG_LCM_ConsumoDiariov2 cd
+INTO TFG_LCM_ResultadoComparativaEnergiav3
+FROM TFG_LCM_ConsumoFacturadov3 cf
+JOIN TFG_LCM_ConsumoDiariov3 cd
     ON cf.idCUPS = cd.idCUPS AND cf.NumeroAlbaran = cd.NumeroAlbaran
 join cups c on cf.idCUPS = c.idCUPS     
 where EnergiaFacturada_P1 >0
