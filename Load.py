@@ -18,6 +18,9 @@ USUARIO_GMAIL = "laia.casula@gmail.com"  # Dirección del autor del TFG
 log("Cargando archivo CSV local...")
 df = pd.read_csv(RUTA_CSV, sep=';')
 
+# Reemplaza NaN por cadenas vacías para que no falle al subir a Google Sheets
+df = df.fillna("")
+
 # PASO 2: Autenticación segura con la API de Google Sheets
 log("Autenticando con Google Sheets...")
 scopes = [
