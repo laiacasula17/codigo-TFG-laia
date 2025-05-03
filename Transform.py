@@ -13,7 +13,7 @@ def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
 # ========================= SPRINT 1: Obtención y validación de datos =========================
-log("Cargando fichero...Extract.csv")
+log("Cargando fichero...")
 file_path = "Extract.csv"
 df = pd.read_csv(file_path, delimiter=';', low_memory=False)
 log(f"Fichero cargado con {len(df):,} registros")
@@ -110,8 +110,8 @@ agregado_por_cups['cluster'] = kmeans_final.fit_predict(X_scaled)
 
 nombres_clusters = {
     0: 'Clientes con perfil neutro',
-    1: 'Clientes sobrefacturados (perfil beneficia a comercializadora)',
-    2: 'Clientes subfacturados (perfil beneficia al cliente)'
+    1: 'Ahorro con curvas',
+    2: 'Ahorro facturación actual'
 }
 agregado_por_cups['cluster_nombre'] = agregado_por_cups['cluster'].map(nombres_clusters)
 
@@ -134,7 +134,9 @@ for var in variables_extra:
         cups_con_ahorro=('ahorro_total', lambda x: (x > 50).sum()),
         cups_con_50=('ahorro_total', lambda x: ((x > 0.01) & (x <= 50)).sum()),
         cups_sin_ahorro=('ahorro_total', lambda x: (x <= 0.01).sum()),
-        ahorro_positivo=('ahorro_total', lambda x: x[x > 0].sum())
+        ahorro_positivo=('ahorro_total', lambda x: x[x > 0].sum()),
+        ahorro_sin_ahorro=('ahorro_total', lambda x: x[x <= 0].sum()),
+        facturacion_total_real=('facturacion_total', 'sum')
     )
     resumen['total'] = resumen[['cups_con_ahorro', 'cups_con_50', 'cups_sin_ahorro']].sum(axis=1)
     resumen['%_con_ahorro'] = (resumen['cups_con_ahorro'] / resumen['total'] * 100).round(2).astype(str) + '%'
