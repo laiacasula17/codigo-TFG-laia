@@ -63,13 +63,22 @@ if 'TipoCliente' not in df.columns:
 agregado_por_cups = df.groupby('idcups_factura', as_index=False).agg(
     ahorro_total=('ahorro_estimado', 'sum'),
     ahorro_positivo=('ahorro_estimado', lambda x: x[x > 0].sum()),
-    consumo_total=('coste_curvas', 'sum'),
-    facturacion_total=('coste_facturado', 'sum'),
+    facturacion_curvas=('coste_curvas', 'sum'),
+    facturacion_actual=('coste_facturado', 'sum'),
     tarifa=('TarifaMaestra', 'first'),
     CP=('CodigoPostalCUPS', 'first'),
     Producto=('Producto', 'first'),
     Fecha=('FechaLectura', 'first'),
     TipoCliente=('TipoCliente', 'first'),
+    MunicipioCUPS=('MunicipioCUPS', 'first'),
+    ProvinciaCUPS=('ProvinciaCUPS', 'first'),
+    CodigoDistribuidora=('CodigoDistribuidora', 'first'),
+    CodigoZona=('CodigoZona', 'first'),
+    TipoCUPS=('TipoCUPS', 'first'),
+    TarifaATR=('TarifaATR', 'first'),
+    CodigoCNAE09=('CodigoCNAE09', 'first'),
+    CodigoZonaOMIE=('CodigoZonaOMIE', 'first'),
+    Cluster=('Cluster', 'first'),
     numdias=('numdias', 'sum'),
     consumo_P1=('ConsumoP1', 'sum'), consumo_P2=('ConsumoP2', 'sum'), consumo_P3=('ConsumoP3', 'sum'),
     consumo_P4=('ConsumoP4', 'sum'), consumo_P5=('ConsumoP5', 'sum'), consumo_P6=('ConsumoP6', 'sum'),
@@ -77,6 +86,7 @@ agregado_por_cups = df.groupby('idcups_factura', as_index=False).agg(
     facturado_P3=('EnergiaFacturada_P3', 'sum'), facturado_P4=('EnergiaFacturada_P4', 'sum'),
     facturado_P5=('EnergiaFacturada_P5', 'sum'), facturado_P6=('EnergiaFacturada_P6', 'sum')
 )
+
 log(f"Total CUPS únicos: {len(agregado_por_cups):,}")
 
 # Clasificación por rangos de ahorro
@@ -141,8 +151,10 @@ agregado_por_cups['id_cliente'] = agregado_por_cups.index + 1
 
 columnas_looker = [
     'id_cliente', 'CP', 'tarifa', 'Producto', 'TipoCliente', 'Fecha',
+    'MunicipioCUPS', 'ProvinciaCUPS', 'CodigoDistribuidora', 'CodigoZona',
+    'TipoCUPS', 'TarifaATR', 'CodigoCNAE09', 'CodigoZonaOMIE', 'Cluster',
     'ahorro_total', 'ahorro_positivo', 'tiene_ahorro', 'tiene_ahorro_50', 'sin_ahorro',
-    'consumo_total', 'facturacion_total',
+    'facturacion_actual','facturacion_curvas',
     'desvio_total_medio', 'desvio_maximo', 'desvio_pct_sobre_consumo',
     'cluster', 'cluster_nombre'
 ]

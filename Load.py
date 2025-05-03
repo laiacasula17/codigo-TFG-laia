@@ -21,9 +21,35 @@ df = pd.read_csv(RUTA_CSV, sep=';')
 # Reemplaza NaN por cadenas vacías para que no falle al subir a Google Sheets
 df = df.fillna("")
 
+# Cálculo de % de ahorro sobre distintas bases
+df["pct_ahorro_sobre_facturado"] = df["ahorro_positivo"] / df["facturacion_actual"]
+df["pct_ahorro_sobre_curvas"] = df["ahorro_positivo"] / df["facturacion_curvas"]
+df["pct_ahorro_sobre_total"] = df["ahorro_positivo"] / (df["facturacion_actual"] + df["facturacion_curvas"])
+
+
+# Clasificar ahorro en una sola columna categórica
+def clasificar_ahorro(valor):
+    if valor >= 50:
+        return 'Ahorro'
+    elif valor > 0.1:
+        return 'Poco ahorro'
+    else:
+        return 'Sin ahorro'
+
+df["clasificacion_ahorro"] = df["ahorro_positivo"].apply(clasificar_ahorro)
+
+# Eliminar columnas innecesarias para simplificar análisis en Looker
+columnas_a_eliminar = [
+    "cluster", "cluster_nombre",
+    "tiene_ahorro", "tiene_ahorro_50", "sin_ahorro",
+    "categoria_ahorro" if "categoria_ahorro" in df.columns else None
+]
+df = df.drop(columns=[c for c in columnas_a_eliminar if c in df.columns])
+
+
 # Añadir columna con la fecha y hora de actualización
-fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-df["fecha_actualizacion"] = fecha_actual
+fecha_actual = datetime.now()
+df["fecha_actualizacion"] = fecha_actual.strftime("%Y-%m-%dT%H:%M:%S")
 
 # PASO 2: Autenticación segura con la API de Google Sheets
 log("Autenticando con Google Sheets...")
@@ -49,6 +75,8 @@ except gspread.SpreadsheetNotFound:
 log("Limpiando contenido anterior y subiendo nuevos datos...")
 pestana = hoja_calculo.get_worksheet(0)  # Selecciona la primera pestaña
 pestana.clear()
+df.replace([float('inf'), float('-inf')], pd.NA, inplace=True)
+df = df.fillna("")
 pestana.update([df.columns.values.tolist()] + df.values.tolist())
 
 log("✅ Proceso completado: los datos se han actualizado correctamente en Google Sheets.")
