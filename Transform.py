@@ -13,7 +13,7 @@ def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
 # ========================= SPRINT 1: Obtención y validación de datos =========================
-log("Cargando fichero...v3")
+log("Cargando fichero...Extract.csv")
 file_path = "Extract.csv"
 df = pd.read_csv(file_path, delimiter=';', low_memory=False)
 log(f"Fichero cargado con {len(df):,} registros")
@@ -140,8 +140,8 @@ for var in variables_extra:
     resumen['%_con_ahorro'] = (resumen['cups_con_ahorro'] / resumen['total'] * 100).round(2).astype(str) + '%'
     resumen['%_con_50'] = (resumen['cups_con_50'] / resumen['total'] * 100).round(2).astype(str) + '%'
     resumen['%_sin_ahorro'] = (resumen['cups_sin_ahorro'] / resumen['total'] * 100).round(2).astype(str) + '%'
-    resumen['impacto_con_ahorro'] = resumen['cups_con_ahorro'] * 50
-    resumen['impacto_con_50'] = resumen['cups_con_50'] * 25
+    resumen['impacto_con_ahorro'] = agregado_por_cups[agregado_por_cups[var].isin(resumen.index) & (agregado_por_cups['ahorro_total'] > 50)].groupby(var)['ahorro_total'].sum()
+    resumen['impacto_con_50'] = agregado_por_cups[agregado_por_cups[var].isin(resumen.index) & ((agregado_por_cups['ahorro_total'] > 0.01) & (agregado_por_cups['ahorro_total'] <= 50))].groupby(var)['ahorro_total'].sum()
     resumen['impacto_total_estimado'] = resumen['impacto_con_ahorro'] + resumen['impacto_con_50']
     total_impacto = resumen['impacto_total_estimado'].sum()
     resumen['%_impacto_estimado'] = (resumen['impacto_total_estimado'] / total_impacto * 100).round(2).astype(str) + '%'
