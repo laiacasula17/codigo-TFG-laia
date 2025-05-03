@@ -21,6 +21,10 @@ df = pd.read_csv(RUTA_CSV, sep=';')
 # Reemplaza NaN por cadenas vacías para que no falle al subir a Google Sheets
 df = df.fillna("")
 
+# Añadir columna con la fecha y hora de actualización
+fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+df["fecha_actualizacion"] = fecha_actual
+
 # PASO 2: Autenticación segura con la API de Google Sheets
 log("Autenticando con Google Sheets...")
 scopes = [

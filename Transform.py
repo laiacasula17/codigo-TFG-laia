@@ -106,25 +106,34 @@ log("Aplicando clustering final con k = 3 (determinado previamente)...")
 kmeans_final = KMeans(n_clusters=3, random_state=42)
 agregado_por_cups['cluster'] = kmeans_final.fit_predict(X_scaled)
 
-# Etiquetas comprensibles alineadas con la clasificación de ahorro
-nombres_clusters = {
-    0: 'Clientes sin ahorro relevante',
-    1: 'Clientes con ahorro > 50€',
-    2: 'Clientes con ahorro hasta 50€'
-}
-agregado_por_cups['cluster_nombre'] = agregado_por_cups['cluster'].map(nombres_clusters)
+# Etiquetado correcto de los clusters basado en el ahorro promedio real
+centroids = pd.DataFrame(kmeans_final.cluster_centers_, columns=features)
+centroids['cluster'] = centroids.index
+
+# Ordenamos los clusters por el ahorro promedio
+cluster_ahorros = agregado_por_cups.groupby('cluster')['ahorro_positivo'].mean().sort_values(ascending=False)
+
+# Asignamos nombres basados en el ahorro observado
+cluster_labels = {}
+for i, (cluster_id, _) in enumerate(cluster_ahorros.items()):
+    if i == 0:
+        cluster_labels[cluster_id] = 'Clientes con ahorro > 50€'
+    elif i == 1:
+        cluster_labels[cluster_id] = 'Clientes con ahorro hasta 50€'
+    else:
+        cluster_labels[cluster_id] = 'Clientes sin ahorro relevante'
+
+agregado_por_cups['cluster_nombre'] = agregado_por_cups['cluster'].map(cluster_labels)
 
 log("Mostrando centroides de los clusters...")
-centroids = pd.DataFrame(kmeans_final.cluster_centers_, columns=features)
-centroids.index = [nombres_clusters[i] for i in centroids.index]
+centroids.index = [cluster_labels[i] for i in centroids.index]
 plt.figure(figsize=(10, 4))
-sns.heatmap(centroids, annot=True, fmt=".2f", cmap="coolwarm")
+sns.heatmap(centroids.drop(columns='cluster'), annot=True, fmt=".2f", cmap="coolwarm")
 plt.title("Centroides de los Clusters (valores estandarizados)")
 plt.ylabel("Descripción del Cluster")
 plt.xlabel("Variables de desviación")
 plt.tight_layout()
 plt.show()
-
 # ========================= Exportación para Looker =========================
 log("Exportando resultados para Looker...")
 agregado_por_cups = agregado_por_cups.reset_index(drop=True)
