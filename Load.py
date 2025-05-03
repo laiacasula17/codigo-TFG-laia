@@ -23,8 +23,6 @@ df = df.fillna("")
 
 # Cálculo de % de ahorro sobre distintas bases
 df["pct_ahorro_sobre_facturado"] = df["ahorro_positivo"] / df["facturacion_actual"]
-df["pct_ahorro_sobre_curvas"] = df["ahorro_positivo"] / df["facturacion_curvas"]
-df["pct_ahorro_sobre_total"] = df["ahorro_positivo"] / (df["facturacion_actual"] + df["facturacion_curvas"])
 
 
 # Clasificar ahorro en una sola columna categórica
