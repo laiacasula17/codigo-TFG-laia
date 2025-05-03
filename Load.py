@@ -39,7 +39,6 @@ df["clasificacion_ahorro"] = df["ahorro_positivo"].apply(clasificar_ahorro)
 # Eliminar columnas innecesarias para simplificar análisis en Looker
 columnas_a_eliminar = [
     "cluster", "cluster_nombre",
-    "tiene_ahorro", "tiene_ahorro_50", "sin_ahorro",
     "categoria_ahorro" if "categoria_ahorro" in df.columns else None
 ]
 df = df.drop(columns=[c for c in columnas_a_eliminar if c in df.columns])
