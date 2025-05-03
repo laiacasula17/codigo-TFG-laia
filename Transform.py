@@ -14,7 +14,7 @@ def log(msg):
 
 # ========================= SPRINT 1: Obtención y validación de datos =========================
 log("Cargando fichero...v3")
-file_path = "Todosv3.csv"
+file_path = "Extract.csv"
 df = pd.read_csv(file_path, delimiter=';', low_memory=False)
 log(f"Fichero cargado con {len(df):,} registros")
 
@@ -157,8 +157,15 @@ for var in variables_extra:
     # ========================= EXPORTACIÓN A CSV PARA LOOKER =========================
 log("Exportando dataset simplificado para Looker Studio...")
 
+log("Anonimizando identificadores...")
+
+# Crear columna secuencial anónima
+agregado_por_cups = agregado_por_cups.reset_index(drop=True)
+agregado_por_cups['id_cliente'] = agregado_por_cups.index + 1  # Comienza en 1
+
+# Seleccionar columnas para exportar (sin idcups_factura)
 columnas_looker = [
-    'idcups_factura',
+    'id_cliente',
     'CP',
     'tarifa',
     'Producto',
@@ -174,5 +181,7 @@ columnas_looker = [
     'cluster_nombre'
 ]
 
-agregado_por_cups[ columnas_looker ].to_csv("TFG_LCM_ResultadoParaLooker.csv", index=False, sep=';')
-log("Fichero 'TFG_LCM_ResultadoParaLooker.csv' generado correctamente.")
+# Exportar CSV sin identificadores sensibles
+agregado_por_cups[columnas_looker].to_csv("TFG_LCM_ResultadoParaLooker.csv", index=False, sep=';')
+log("Fichero 'TFG_LCM_ResultadoParaLooker.csv' generado correctamente con identificadores anonimizados.")
+
