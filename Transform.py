@@ -164,26 +164,24 @@ log("Anonimizando identificadores...")
 # Crear columna secuencial anónima
 agregado_por_cups = agregado_por_cups.reset_index(drop=True)
 agregado_por_cups['id_cliente'] = agregado_por_cups.index + 1  # Comienza en 1
+agregado_por_cups['tiene_ahorro'] = agregado_por_cups['ahorro_total'] > 50
+agregado_por_cups['tiene_ahorro_50'] = (agregado_por_cups['ahorro_total'] > 0.01) & (agregado_por_cups['ahorro_total'] <= 50)
+agregado_por_cups['sin_ahorro'] = agregado_por_cups['ahorro_total'] <= 0.01
+
 
 # Seleccionar columnas para exportar (sin idcups_factura)
 columnas_looker = [
-    'id_cliente',
-    'CP',
-    'tarifa',
-    'Producto',
-    'TipoCliente',
-    'ahorro_total',
-    'ahorro_positivo',
-    'consumo_total',
-    'facturacion_total',
-    'desvio_total_medio',
-    'desvio_maximo',
-    'desvio_pct_sobre_consumo',
-    'cluster',
-    'cluster_nombre'
+    'id_cliente', 'CP', 'tarifa', 'Producto', 'TipoCliente',
+    'ahorro_total', 'ahorro_positivo',
+    'tiene_ahorro', 'tiene_ahorro_50', 'sin_ahorro',
+    'consumo_total', 'facturacion_total',
+    'desvio_total_medio', 'desvio_maximo', 'desvio_pct_sobre_consumo',
+    'cluster', 'cluster_nombre'
 ]
+
 
 # Exportar CSV sin identificadores sensibles
 agregado_por_cups[columnas_looker].to_csv("TFG_LCM_ResultadoParaLooker.csv", index=False, sep=';')
+
 log("Fichero 'TFG_LCM_ResultadoParaLooker.csv' generado correctamente con identificadores anonimizados.")
 
