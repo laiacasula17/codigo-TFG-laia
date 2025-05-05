@@ -28,6 +28,9 @@ df["Producto"] = df["Producto"].replace({
     10: "Campaña"
 })
 
+# Filtrar únicamente tarifas deseadas: 20TD, 30TD, 61TD, 62TD
+df = df[df["tarifa"].isin(["20TD", "30TD", "61TD", "62TD", "63TD", "64TD"])]
+
 # Reemplaza NaN por cadenas vacías para que no falle al subir a Google Sheets
 df = df.fillna("")
 
