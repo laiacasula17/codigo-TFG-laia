@@ -18,6 +18,16 @@ USUARIO_GMAIL = "laia.casula@gmail.com"  # Dirección del autor del TFG
 log("Cargando archivo CSV local...")
 df = pd.read_csv(RUTA_CSV, sep=';')
 
+# Filtrar únicamente productos deseados: 0, 3, 10
+df = df[df["Producto"].isin([0, 3, 10])]
+
+# Renombrar los valores numéricos por etiquetas legibles
+df["Producto"] = df["Producto"].replace({
+    0: "Classic",
+    3: "Corporate",
+    10: "Campaña"
+})
+
 # Reemplaza NaN por cadenas vacías para que no falle al subir a Google Sheets
 df = df.fillna("")
 

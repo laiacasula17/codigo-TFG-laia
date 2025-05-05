@@ -59,6 +59,9 @@ if 'FechaLectura' not in df.columns:
     df['FechaLectura'] = pd.NaT
 if 'TipoCliente' not in df.columns:
     df['TipoCliente'] = df['CodigoPostalCUPS']
+    
+
+    
 
 agregado_por_cups = df.groupby('idcups_factura', as_index=False).agg(
     ahorro_total=('ahorro_estimado', 'sum'),
@@ -135,6 +138,13 @@ for i, (cluster_id, _) in enumerate(cluster_ahorros.items()):
 
 agregado_por_cups['cluster_nombre'] = agregado_por_cups['cluster'].map(cluster_labels)
 
+# Añadir columna TienePrecioFijo como texto
+agregado_por_cups["TienePrecioFijo"] = np.where(
+    df.groupby('idcups_factura')['TienePrecioFijo'].first() == -1,
+    'Fix',
+    'Idx'
+)
+
 log("Mostrando centroides de los clusters...")
 centroids.index = [cluster_labels[i] for i in centroids.index]
 plt.figure(figsize=(10, 4))
@@ -156,7 +166,8 @@ columnas_looker = [
     'ahorro_total', 'ahorro_positivo', 'tiene_ahorro', 'tiene_ahorro_50', 'sin_ahorro',
     'facturacion_actual','facturacion_curvas',
     'desvio_total_medio', 'desvio_maximo', 'desvio_pct_sobre_consumo',
-    'cluster', 'cluster_nombre'
+    'cluster', 'cluster_nombre',
+    'TienePrecioFijo'
 ]
 
 agregado_por_cups[columnas_looker].to_csv("TFG_LCM_ResultadoParaLooker.csv", sep=';', index=False)
